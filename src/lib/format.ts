@@ -14,10 +14,3 @@ export function money(cents: number) {
   const amount = BigInt(cents);
   return `$${(amount / 100n).toLocaleString("en-US")}.${String(amount % 100n).padStart(2, "0")}`;
 }
-
-export function dateTime(value: Date) {
-  return value.toLocaleString("en-US", {
-    month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
-    hour12: false, timeZone: "UTC",
-  }) + " UTC";
-}

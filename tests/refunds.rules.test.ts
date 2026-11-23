@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertExecutable, decidedStatus, initialStatus } from "../src/apps/refunds/rules";
 import { money, parseCents } from "../src/lib/format";
 import { assertCanDecide } from "../src/lib/rules";
+import { dateTime, easternDayAt } from "../src/lib/time";
 
 describe("refund ledger", () => {
   it("auto-approves exactly $500", () => expect(initialStatus(50000, 50000, 0)).toBe("APPROVED"));
@@ -37,5 +38,21 @@ describe("approval authority", () => {
   });
   it("allows an independent manager", () => {
     expect(() => assertCanDecide(request, { id: "peer", role: "manager" })).not.toThrow();
+  });
+});
+
+describe("Eastern ledger dates", () => {
+  it.each([
+    ["2026-03-08T18:00:00Z", "2026-03-08T05:00:00.000Z"], // spring-forward day starts in EST
+    ["2026-11-01T18:00:00Z", "2026-11-01T04:00:00.000Z"], // fall-back day starts in EDT
+    ["2026-07-01T03:59:59Z", "2026-06-30T04:00:00.000Z"], // still yesterday in New York
+    ["2026-07-01T04:00:00Z", "2026-07-01T04:00:00.000Z"],
+  ])("counts today's refunds from Eastern midnight at %s", (instant, midnight) => {
+    expect(easternDayAt(new Date(instant), 0, 0).toISOString()).toBe(midnight);
+  });
+  it("keeps seed events at the same wall-clock hour across a clock change", () => {
+    const now = new Date("2026-03-09T12:00:00Z");
+    expect(dateTime(easternDayAt(now, 2, 10))).toContain("10:00 EST");
+    expect(dateTime(easternDayAt(now, 1, 10))).toContain("10:00 EDT");
   });
 });

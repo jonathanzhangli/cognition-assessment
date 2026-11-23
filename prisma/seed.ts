@@ -2,6 +2,7 @@ import { hash } from "bcryptjs";
 import { createRefund, executeRefund } from "../src/apps/refunds/service";
 import { recordDecision } from "../src/lib/approvals";
 import { db } from "../src/lib/db";
+import { easternDayAt } from "../src/lib/time";
 
 const customers = [
   "Avery Chen", "Morgan Reed", "Sam Rivera", "Noor Khan", "Elliot Hayes",
@@ -27,18 +28,20 @@ async function seed() {
         id: `C-${i}`, name, email: `${name.toLowerCase().replace(" ", ".")}@example.com`,
       } });
     }
-    const now = Date.now();
+    const now = new Date();
     for (let i = 0; i < 50; i++) {
       await tx.transaction.create({ data: {
         id: `TX-${1001 + i}`, customerId: `C-${i % customers.length}`,
         amountCents: i < 3 ? 300_000 : i < 13 ? 160_000 + i * 123 : 500 + (i * 27943) % 299501,
         description: ["Annual subscription", "Equipment purchase", "Account services"][i % 3],
-        createdAt: new Date(now - (51 - i) * 86400000),
+        createdAt: easternDayAt(now, 51 - i, 10),
       } });
     }
     const amounts = [82500, 112000, 64050, 14900, 47800, 95000, 18750, 32500, 72000, 8900];
     for (const [i, amountCents] of amounts.entries()) {
-      const at = new Date(now - (9 - i) * 86400000 - 120000);
+      const daysAgo = amounts.length - 1 - i;
+      // Today's fixture executes at seed time, even if setup runs just after midnight.
+      const at = daysAgo === 0 ? new Date(now.getTime() - 60_000) : easternDayAt(now, daysAgo, 11);
       const requestedById = i % 2 ? "agent2" : "agent";
       const refund = await createRefund(tx, {
         transactionId: `TX-${1004 + i}`, amountCents, requestedById,

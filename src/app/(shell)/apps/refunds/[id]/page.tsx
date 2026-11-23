@@ -6,7 +6,8 @@ import { AuditTable } from "@/components/audit-table";
 import { Heading, Status } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { dateTime, money } from "@/lib/format";
+import { money } from "@/lib/format";
+import { dateTime } from "@/lib/time";
 import { execute } from "../actions";
 
 export const metadata = { title: "Refund detail" };

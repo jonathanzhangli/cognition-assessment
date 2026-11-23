@@ -157,6 +157,17 @@ td small { margin-top: 3px; }
 .entry-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(200px, 1fr); align-items: start; gap: 22px; }
 .form-panel, .policy-note, .info { padding: clamp(18px, 2.5vw, 30px); }
 .form-fields { display: grid; gap: 18px; min-width: 0; }
+.tx-picker { position: relative; margin-top: 6px; }
+.tx-picker input { display: block; width: 100%; padding-right: 44px; text-overflow: ellipsis; }
+.tx-toggle { position: absolute; inset: 0 0 0 auto; width: 42px; display: grid; place-items: center; color: var(--fern); }
+.tx-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.tx-dropdown { position: absolute; z-index: 5; inset: calc(100% + 5px) 0 auto; max-height: min(260px, 40vh); overflow-y: auto;
+  border: 1px solid #bac4b7; border-radius: 5px; background: var(--panel); box-shadow: 0 6px 18px #173e341a; }
+.tx-dropdown li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 13px; font-size: 14px; cursor: pointer; }
+.tx-dropdown li + li { border-top: 1px solid var(--line); }
+.tx-dropdown li:hover, .tx-dropdown li[data-active="true"] { background: #eef1e7; }
+.tx-dropdown small { overflow-wrap: anywhere; }
+.tx-dropdown p { padding: 14px; color: var(--muted); }
 .balance { display: flex; justify-content: space-between; gap: 10px; color: var(--fern); font-size: 13px; }
 .policy-note { border-top: 3px solid var(--fern); background: #e9eddf; }
 .policy-note > p:not(.eyebrow) { margin-top: 16px; color: var(--muted); }

@@ -4,7 +4,7 @@ import { Empty, Heading, Status } from "@/components/ui";
 import { approvalHandlers } from "@/lib/approvals";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { dateTime } from "@/lib/format";
+import { dateTime } from "@/lib/time";
 import { decide } from "./actions";
 
 export const metadata = { title: "Approvals" };

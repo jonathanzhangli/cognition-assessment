@@ -4,15 +4,15 @@ import { refundRoles } from "@/apps/registry";
 import { Empty, Heading, Status, statusLabels } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { dateTime, money } from "@/lib/format";
+import { money } from "@/lib/format";
+import { dateTime, easternDayAt } from "@/lib/time";
 
 export const metadata = { title: "Refunds" };
 export default async function RefundsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   await requireRole(...refundRoles);
   const params = await searchParams;
   const selected = Object.values(RefundStatus).find(s => s === params.status);
-  const midnight = new Date();
-  midnight.setUTCHours(0, 0, 0, 0);
+  const midnight = easternDayAt(new Date(), 0, 0);
   const [pending, today, total, refunds] = await Promise.all([
     db.refund.count({ where: { status: "PENDING_APPROVAL" } }),
     db.refund.aggregate({ where: { status: "REFUNDED", updatedAt: { gte: midnight } }, _sum: { amountCents: true } }),
@@ -26,7 +26,7 @@ export default async function RefundsPage({ searchParams }: { searchParams: Prom
       action={<Link className="btn primary" href="/apps/refunds/new">+ &nbsp; New refund</Link>}/>
     <div className="stats">
       <div><p className="micro">Pending approval</p><strong>{pending}</strong><small>Awaiting sign-off</small></div>
-      <div><p className="micro">Refunded today</p><strong>{money(today._sum.amountCents ?? 0)}</strong><small>Since midnight UTC</small></div>
+      <div><p className="micro">Refunded today</p><strong>{money(today._sum.amountCents ?? 0)}</strong><small>Since midnight ET</small></div>
       <div><p className="micro">Refunded total</p><strong>{money(total._sum.amountCents ?? 0)}</strong><small>All executed refunds</small></div>
     </div>
     <section className="panel"><div className="panel-head"><h2>Refund ledger</h2>

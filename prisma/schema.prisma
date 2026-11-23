@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  agent
+  manager
+  admin
+}
+
+enum RefundStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String
+  passwordHash String
+  role         Role
+  refunds      Refund[]
+  requests     ApprovalRequest[] @relation("Requester")
+  decisions    ApprovalRequest[] @relation("Decider")
+  auditEntries AuditLog[]
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  amountCents Int
+  currency    String   @default("USD")
+  description String
+  createdAt   DateTime @default(now())
+  refunds     Refund[]
+}
+
+model Refund {
+  id            String       @id @default(cuid())
+  transactionId String
+  transaction   Transaction  @relation(fields: [transactionId], references: [id])
+  amountCents   Int
+  reason        String
+  status        RefundStatus
+  requestedById String
+  requestedBy   User         @relation(fields: [requestedById], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([transactionId, status])
+  @@index([status, updatedAt])
+}
+
+model ApprovalRequest {
+  id            String         @id @default(cuid())
+  entityType    String
+  entityId      String
+  summary       String
+  requestedById String
+  requestedBy   User           @relation("Requester", fields: [requestedById], references: [id])
+  status        ApprovalStatus @default(PENDING)
+  decidedById   String?
+  decidedBy     User?          @relation("Decider", fields: [decidedById], references: [id])
+  comment       String?
+  createdAt     DateTime       @default(now())
+  decidedAt     DateTime?
+
+  @@index([status, createdAt])
+  @@index([entityType, entityId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  before     String?
+  after      String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([createdAt])
+}
